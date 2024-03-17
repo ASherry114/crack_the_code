@@ -131,5 +131,8 @@ class Game:
         """
 
         # Sanity checks
+        if player_id not in self.players:
+            raise ValueError("Player ID is invalid")
 
         # Return character tiles
+        return self.players[player_id]
