@@ -1,0 +1,3 @@
+The players could be given a token which is unique to them, then when they
+submit their questions or actions or guesses, it has to be the order of the
+next player or whatever.
