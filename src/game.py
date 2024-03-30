@@ -35,6 +35,21 @@ class Tile:
         self.colour = colour
 
 
+class Player:
+    """
+    A player in the game.
+    """
+
+    tiles: list[Tile]
+    made_guess: bool
+    guessed_correctly: bool
+
+    def __init__(self, tiles: list[Tile] = []):
+        self.tiles = tiles
+        self.made_guess = False
+        self.guessed_correctly = False
+
+
 class Game:
     """
     Crack the code game class.
@@ -45,6 +60,9 @@ class Game:
     other players have taken, and then deduce the remaining numbers to win the
     game.
     """
+
+    players: dict[Player]
+    solution: list[Tile]
 
     def __init__(self):
         self.players = {}
@@ -111,7 +129,7 @@ class Game:
         ]
         self.solution = split_tiles.pop(0)
         for i, tiles in enumerate(split_tiles):
-            self.players[f"token{i}"] = tiles
+            self.players[f"token{i}"] = Player(tiles)
 
         # Return player IDs
         return list(self.players.keys())
@@ -135,4 +153,15 @@ class Game:
             raise ValueError("Player ID is invalid")
 
         # Return character tiles
-        return self.players[player_id]
+        return self.players[player_id].tiles
+
+    def submit_solution(self, submission: list[Tile]) -> bool:
+        """
+        Attempt to submit a solution to the game.
+
+        Args:
+            submission (list[int]): The submission of tiles.
+
+        Returns:
+            bool: Whether the submission was correct or not.
+        """
