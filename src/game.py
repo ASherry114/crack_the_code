@@ -34,6 +34,29 @@ class Tile:
         self.number = number
         self.colour = colour
 
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Tile):
+            return False
+
+        return self.number == __value.number and self.colour == __value.colour
+
+    @staticmethod
+    def sorting_func(t: 'Tile') -> int:
+        """
+        Sorting function for tiles.
+        Tiles should be ordered lowest to highest, with White tiles before
+        black tiles.
+
+        Returns:
+            str: A unique value for the tile.
+        """
+
+        res = t.number * 10
+        if t.colour == Colours.BLACK:
+            res += 1
+
+        return res
+
 
 class Player:
     """
@@ -127,9 +150,11 @@ class Game:
             game_tiles[i*num_tiles_pp:(i+1)*num_tiles_pp]
             for i in range(num_players + 1)
         ]
-        self.solution = split_tiles.pop(0)
+        self.solution = sorted(split_tiles.pop(0), key=Tile.sorting_func)
         for i, tiles in enumerate(split_tiles):
-            self.players[f"token{i}"] = Player(tiles)
+            self.players[f"token{i}"] = Player(
+                sorted(tiles, key=Tile.sorting_func)
+            )
 
         # Return player IDs
         return list(self.players.keys())
@@ -158,6 +183,7 @@ class Game:
     def submit_solution(self, player_id: str, submission: list[Tile]) -> None:
         """
         Attempt to submit a solution to the game.
+        NOTE: The order must be provided correctly too.
 
         Args:
             submission (list[int]): The submission of tiles.
