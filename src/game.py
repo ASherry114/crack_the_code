@@ -48,7 +48,7 @@ class Game:
 
     def __init__(self):
         self.players = {}
-        self.tiles = []
+        self.solution = []
 
     def new_game(self, num_players: int) -> list[str]:
         """
@@ -79,7 +79,7 @@ class Game:
             )
 
         # Wipe any existing state
-        self.tiles = []
+        self.solution = []
         self.players = {}
 
         # Enumerate the tiles
@@ -109,7 +109,7 @@ class Game:
             game_tiles[i*num_tiles_pp:(i+1)*num_tiles_pp]
             for i in range(num_players + 1)
         ]
-        self.tiles = split_tiles.pop(0)  # The "solution"
+        self.solution = split_tiles.pop(0)
         for i, tiles in enumerate(split_tiles):
             self.players[f"token{i}"] = tiles
 
