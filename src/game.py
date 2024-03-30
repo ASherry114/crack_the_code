@@ -260,8 +260,7 @@ class Game:
             raise ValueError("Index is invalid")
 
         # Replace the clue
-        new_clue = ""
         if len(self.backlog_clues) > 0:
-            new_clue = self.backlog_clues.pop(0)
-
-        self.current_clues[idx] = new_clue
+            self.current_clues[idx] = self.backlog_clues.pop(0)
+        else:
+            self.current_clues.pop(idx)
