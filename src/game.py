@@ -61,7 +61,7 @@ class Game:
     game.
     """
 
-    players: dict[Player]
+    players: dict[str]
     solution: list[Tile]
 
     def __init__(self):
@@ -155,13 +155,37 @@ class Game:
         # Return character tiles
         return self.players[player_id].tiles
 
-    def submit_solution(self, submission: list[Tile]) -> bool:
+    def submit_solution(self, player_id: str, submission: list[Tile]) -> None:
         """
         Attempt to submit a solution to the game.
 
         Args:
             submission (list[int]): The submission of tiles.
 
-        Returns:
-            bool: Whether the submission was correct or not.
+        Raises:
+            ValueError: If the player ID is invalid.
         """
+
+        # Sanity checks
+        if player_id not in self.players:
+            raise ValueError("Player ID is invalid")
+
+        # Check the submission
+        # Trivial check as tiles always in order
+        self.players[player_id].made_guess = True
+        if submission == self.solution:
+            self.players[player_id].guessed_correctly = True
+
+    def get_winners(self) -> list[str]:
+        """
+        Get the winners of the game.
+
+        Returns:
+            list[str]: The unique IDs of the winners.
+        """
+
+        return [
+            player_id
+            for player_id, player in self.players.items()
+            if player.guessed_correctly
+        ]
