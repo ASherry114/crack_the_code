@@ -6,6 +6,7 @@ Crack the code board game.
 
 from random import shuffle
 from enum import Enum
+from io import TextIOBase
 
 
 class Colours(Enum):
@@ -86,20 +87,27 @@ class Game:
 
     players: dict[str]
     solution: list[Tile]
+    backlog_clues: list[str]
+    current_clues: list[str]
 
     def __init__(self):
         self.players = {}
         self.solution = []
+        self.backlog_clues = []
+        self.current_clues = []
 
-    def new_game(self, num_players: int) -> list[str]:
+    def new_game(self, num_players: int, clues_file: TextIOBase) -> list[str]:
         """
         Start a new game.
         The number of players determines how the game is played / what the
         rules are.
         This will create a new game state with new tiles.
+        The clues in the file is what the players use to determine the
+        solution.
 
         Args:
             num_players (int): The number of players in the game.
+            clues_file (io.TextIOBase): The file containing the clues.
 
         Returns:
             list[str]: The unique IDs of the players in the game.
@@ -107,7 +115,14 @@ class Game:
         Raises:
             ValueError: If the number of players is not between 2 and 4
                 inclusive.
+            ValueError: If the clues file is invalid.
         """
+
+        # Wipe any existing state
+        self.solution = []
+        self.players = {}
+        self.backlog_clues = []
+        self.current_clues = []
 
         # Sanity checks
         if num_players < 2 or num_players > 4:
@@ -118,10 +133,20 @@ class Game:
             raise NotImplementedError(
                 "2 player games are not supported at the moment"
             )
+        first_line = clues_file.readline().strip()
+        if first_line != "IS_CLUES_FILE":
+            raise ValueError("Invalid clues file")
 
-        # Wipe any existing state
-        self.solution = []
-        self.players = {}
+        # Load the clues
+        self.backlog_clues = [
+            line.strip()
+            for line in clues_file.readlines()
+        ]
+        shuffle(self.backlog_clues)
+        self.current_clues = [
+            self.backlog_clues.pop(0)
+            for _ in range(min(6, len(self.backlog_clues)))
+        ]
 
         # Enumerate the tiles
         game_tiles = []
@@ -218,3 +243,25 @@ class Game:
             for player_id, player in self.players.items()
             if player.guessed_correctly
         ]
+
+    def expend_clue(self, idx: int) -> None:
+        """
+        Expend a clue from the current list of clues and obtain a new one.
+
+        Args:
+            idx (int): The index of the clue to expend.
+
+        Raises:
+            ValueError: If the index is invalid.
+        """
+
+        # Sanity checks
+        if idx < 0 or idx >= len(self.current_clues):
+            raise ValueError("Index is invalid")
+
+        # Replace the clue
+        new_clue = ""
+        if len(self.backlog_clues) > 0:
+            new_clue = self.backlog_clues.pop(0)
+
+        self.current_clues[idx] = new_clue
