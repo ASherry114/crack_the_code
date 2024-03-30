@@ -190,11 +190,14 @@ class Game:
 
         Raises:
             ValueError: If the player ID is invalid.
+            ValueError: If the player can't submit.
         """
 
         # Sanity checks
         if player_id not in self.players:
             raise ValueError("Player ID is invalid")
+        if self.players[player_id].made_guess:
+            raise ValueError("Player has already submitted a guess")
 
         # Check the submission
         # Trivial check as tiles always in order
