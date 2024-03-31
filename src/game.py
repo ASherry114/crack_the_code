@@ -5,58 +5,8 @@ Crack the code board game.
 """
 
 from random import shuffle
-from enum import Enum
-from io import TextIOBase
 
-
-class Colours(Enum):
-    WHITE = "white"
-    BLACK = "black"
-    GREEN = "green"
-
-
-class Tile:
-    """
-    A tile in the game.
-    """
-
-    number: int
-    colour: Colours
-
-    def __init__(self, number: int, colour: Colours | str):
-        # Sanity checks
-        if number < 0 or number > 9:
-            raise ValueError("Number must be between 0 and 9 inclusive")
-        if isinstance(colour, str):
-            colour = Colours(colour)
-        if colour not in [Colours.WHITE, Colours.BLACK, Colours.GREEN]:
-            raise ValueError("Colour must be white, black or green")
-
-        self.number = number
-        self.colour = colour
-
-    def __eq__(self, __value: object) -> bool:
-        if not isinstance(__value, Tile):
-            return False
-
-        return self.number == __value.number and self.colour == __value.colour
-
-    @staticmethod
-    def sorting_func(t: 'Tile') -> int:
-        """
-        Sorting function for tiles.
-        Tiles should be ordered lowest to highest, with White tiles before
-        black tiles.
-
-        Returns:
-            str: A unique value for the tile.
-        """
-
-        res = t.number * 10
-        if t.colour == Colours.BLACK:
-            res += 1
-
-        return res
+from src.tiles import clue_factory, Colours, Tile
 
 
 class Player:
@@ -87,16 +37,16 @@ class Game:
 
     players: dict[str]
     solution: list[Tile]
-    backlog_clues: list[str]
-    current_clues: list[str]
+    backlog_queries: list[str]
+    current_queries: list[str]
 
     def __init__(self):
         self.players = {}
         self.solution = []
-        self.backlog_clues = []
-        self.current_clues = []
+        self.backlog_queries = []
+        self.current_queries = []
 
-    def new_game(self, num_players: int, clues_file: TextIOBase) -> list[str]:
+    def new_game(self, num_players: int) -> list[str]:
         """
         Start a new game.
         The number of players determines how the game is played / what the
@@ -107,7 +57,6 @@ class Game:
 
         Args:
             num_players (int): The number of players in the game.
-            clues_file (io.TextIOBase): The file containing the clues.
 
         Returns:
             list[str]: The unique IDs of the players in the game.
@@ -121,8 +70,8 @@ class Game:
         # Wipe any existing state
         self.solution = []
         self.players = {}
-        self.backlog_clues = []
-        self.current_clues = []
+        self.backlog_queries = []
+        self.current_queries = []
 
         # Sanity checks
         if num_players < 2 or num_players > 4:
@@ -133,19 +82,13 @@ class Game:
             raise NotImplementedError(
                 "2 player games are not supported at the moment"
             )
-        first_line = clues_file.readline().strip()
-        if first_line != "IS_CLUES_FILE":
-            raise ValueError("Invalid clues file")
 
         # Load the clues
-        self.backlog_clues = [
-            line.strip()
-            for line in clues_file.readlines()
-        ]
-        shuffle(self.backlog_clues)
-        self.current_clues = [
-            self.backlog_clues.pop(0)
-            for _ in range(min(6, len(self.backlog_clues)))
+        self.backlog_queries = clue_factory()
+        shuffle(self.backlog_queries)
+        self.current_queries = [
+            self.backlog_queries.pop(0)
+            for _ in range(min(6, len(self.backlog_queries)))
         ]
 
         # Enumerate the tiles
@@ -244,23 +187,23 @@ class Game:
             if player.guessed_correctly
         ]
 
-    def expend_clue(self, idx: int) -> None:
+    def expend_query(self, idx: int) -> None:
         """
-        Expend a clue from the current list of clues and obtain a new one.
+        Expend a query from the current list of queries and obtain a new one.
 
         Args:
-            idx (int): The index of the clue to expend.
+            idx (int): The index of the query to expend.
 
         Raises:
             ValueError: If the index is invalid.
         """
 
         # Sanity checks
-        if idx < 0 or idx >= len(self.current_clues):
+        if idx < 0 or idx >= len(self.current_queries):
             raise ValueError("Index is invalid")
 
         # Replace the clue
-        if len(self.backlog_clues) > 0:
-            self.current_clues[idx] = self.backlog_clues.pop(0)
+        if len(self.backlog_queries) > 0:
+            self.current_queries[idx] = self.backlog_queries.pop(0)
         else:
-            self.current_clues.pop(idx)
+            self.current_queries.pop(idx)
